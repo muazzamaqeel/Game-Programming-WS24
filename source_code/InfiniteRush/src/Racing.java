@@ -20,6 +20,7 @@ class Racing implements KeyListener {
     private final Random random;
 
     private JLabel playerCarLabel;
+    private JLabel nitroEffect;
     private JLabel timerLabel;
     private JLabel background1;
     private JLabel background2;
@@ -47,7 +48,6 @@ class Racing implements KeyListener {
         frame.setLayout(null);
 
         try {
-            // Load resources and set initial positions
             background1 = loadImage("/race1.png");
             background2 = loadImage("/race1.png");
             playerCarLabel = loadImage("/player_car.png");
@@ -56,49 +56,29 @@ class Racing implements KeyListener {
             background2.setBounds(0, backgroundY2, 740, 500);
 
             playerCarLabel.setBounds(playerCar.getPositionX(), playerCar.getPositionY(), 36, 57);
-            playerCarLabel.setVisible(true); // Ensure player car is visible
-
             timerLabel = new JLabel("00:00", JLabel.CENTER);
             timerLabel.setFont(new Font("Arial", Font.BOLD, 20));
             timerLabel.setForeground(Color.RED);
             timerLabel.setBounds(600, 10, 100, 30);
 
-            System.out.println("PlayerCar initial position: X = " + playerCar.getPositionX() +
-                    ", Y = " + playerCar.getPositionY());
-
         } catch (Exception e) {
-            System.err.println("Error loading resources. Ensure files are placed in 'src/Resources' and paths are correct.");
             e.printStackTrace();
-            background1 = new JLabel();
-            background2 = new JLabel();
-            playerCarLabel = new JLabel();
-            timerLabel = new JLabel("Error", JLabel.CENTER);
         }
 
-        // Add components in the correct order to ensure proper layering
         frame.add(background1);
         frame.add(background2);
         frame.add(timerLabel);
-        frame.add(playerCarLabel, 0); // Add the player car to the top layer
-
-        // Debugging player car visibility
-        System.out.println("PlayerCarLabel Bounds: " + playerCarLabel.getBounds());
-        System.out.println("PlayerCarLabel Visible: " + playerCarLabel.isVisible());
+        frame.add(playerCarLabel, 0);
 
         frame.addKeyListener(this);
         frame.setVisible(true);
-
-        // Trigger a repaint to ensure all components are visible
-        frame.repaint();
     }
 
     private JLabel loadImage(String resourcePath) {
         ImageIcon icon = null;
         try {
             icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources" + resourcePath)));
-            System.out.println("Successfully loaded resource: " + resourcePath);
         } catch (Exception e) {
-            System.err.println("Failed to load resource: " + resourcePath);
             e.printStackTrace();
         }
         return new JLabel(icon);
@@ -144,8 +124,6 @@ class Racing implements KeyListener {
             obstacleCar.setBounds(x, -100, 36, 57);
             obstacleCars.add(obstacleCar);
             frame.add(obstacleCar, 0);
-        } else {
-            System.err.println("Skipping obstacle car due to missing resource.");
         }
     }
 
@@ -154,7 +132,6 @@ class Racing implements KeyListener {
         for (JLabel obstacleCar : obstacleCars) {
             int newY = obstacleCar.getY() + 5;
             obstacleCar.setBounds(obstacleCar.getX(), newY, 36, 57);
-
             if (newY > 530) {
                 carsToRemove.add(obstacleCar);
             }
@@ -173,22 +150,40 @@ class Racing implements KeyListener {
         }
     }
 
+    private void updateUI() {
+        timerLabel.setText(timer.getFormattedTime());
+        playerCarLabel.setBounds(playerCar.getPositionX(), playerCar.getPositionY(), 36, 57);
+
+        if (playerCar.isNitroActive()) {
+            if (nitroEffect == null) {
+                nitroEffect = loadImage("/nitro.png");
+                frame.add(nitroEffect, 0);
+            }
+            nitroEffect.setBounds(playerCar.getPositionX() - 10, playerCar.getPositionY() + 40, 50, 50);
+        } else if (nitroEffect != null) {
+            frame.remove(nitroEffect);
+            nitroEffect = null;
+        }
+
+        frame.repaint();
+    }
+
     private void endGame() {
         gameOver = true;
         JOptionPane.showMessageDialog(frame, "Game Over! You lasted: " + timer.getFormattedTime(), "Game Over", JOptionPane.ERROR_MESSAGE);
         System.exit(0);
     }
 
-    private void updateUI() {
-        timerLabel.setText(timer.getFormattedTime());
-        playerCarLabel.setBounds(playerCar.getPositionX(), playerCar.getPositionY(), 36, 57);
-        System.out.println("Updated playerCarLabel position: " + playerCarLabel.getBounds());
-    }
-
     @Override
     public void keyPressed(KeyEvent ke) {
         if (!gameOver) {
             int keyCode = ke.getKeyCode();
+
+            if (keyCode == KeyEvent.VK_N) { // Activate nitro when 'N' is pressed
+                playerCar.activateNitro();
+                new Timer(10000, e -> playerCar.deactivateNitro()).setRepeats(false); // Deactivate nitro after 10 seconds
+            }
+
             if (keyCode == KeyEvent.VK_LEFT) {
                 playerCar.moveLeft();
             } else if (keyCode == KeyEvent.VK_RIGHT) {
@@ -198,12 +193,15 @@ class Racing implements KeyListener {
             } else if (keyCode == KeyEvent.VK_DOWN) {
                 playerCar.moveDown();
             }
+
             updateUI();
         }
     }
 
     @Override
-    public void keyReleased(KeyEvent ke) {}
+    public void keyReleased(KeyEvent ke) {
+        updateUI();
+    }
 
     @Override
     public void keyTyped(KeyEvent ke) {}
