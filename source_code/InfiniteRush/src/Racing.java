@@ -1,208 +1,139 @@
 import Components.PlayerCar;
-import Components.TimerComponent;
-import Interfaces.Subject;
-import StateManagement.GameState;
+import StateManagement.GameConfig;
+import StateManagement.ObstacleManager;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
 
-class Racing implements KeyListener {
-    private final Subject gameState;
-    private final TimerComponent timer;
+public class Racing implements KeyListener {
     private final PlayerCar playerCar;
-    private final List<JLabel> obstacleCars;
-    private final Random random;
+    private final ObstacleManager obstacleManager;
 
     private JLabel playerCarLabel;
-    private JLabel nitroEffect;
-    private JLabel timerLabel;
     private JLabel background1;
     private JLabel background2;
 
     private JFrame frame;
+    private int backgroundY1 = 0;
+    private int backgroundY2 = -GameConfig.FRAME_HEIGHT;
     private boolean gameOver;
 
-    private int backgroundY1 = 0;
-    private int backgroundY2 = -500;
-
     Racing() {
-        gameState = new GameState();
-        timer = new TimerComponent();
-        playerCar = new PlayerCar();
-        obstacleCars = new ArrayList<>();
-        random = new Random();
-        gameOver = false;
-
-        gameState.addObserver(timer);
-        gameState.addObserver(playerCar);
-
+        playerCar = new PlayerCar(GameConfig.LEFT_MARGIN, GameConfig.FRAME_HEIGHT - 150);
         frame = new JFrame("Racing Game");
-        frame.setSize(740, 530);
+        obstacleManager = new ObstacleManager(frame);
+        initUI();
+    }
+
+    private void initUI() {
+        // Set to full window size without fullscreen
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setSize(GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(null);
 
-        try {
-            background1 = loadImage("/race1.png");
-            background2 = loadImage("/race1.png");
-            playerCarLabel = loadImage("/player_car.png");
-
-            background1.setBounds(0, backgroundY1, 740, 500);
-            background2.setBounds(0, backgroundY2, 740, 500);
-
-            playerCarLabel.setBounds(playerCar.getPositionX(), playerCar.getPositionY(), 36, 57);
-            timerLabel = new JLabel("00:00", JLabel.CENTER);
-            timerLabel.setFont(new Font("Arial", Font.BOLD, 20));
-            timerLabel.setForeground(Color.RED);
-            timerLabel.setBounds(600, 10, 100, 30);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        background1 = loadBackground();
+        background2 = loadBackground();
+        playerCarLabel = loadCarImage();
 
         frame.add(background1);
         frame.add(background2);
-        frame.add(timerLabel);
         frame.add(playerCarLabel, 0);
 
         frame.addKeyListener(this);
         frame.setVisible(true);
+
+        startGame();
     }
 
-    private JLabel loadImage(String resourcePath) {
-        ImageIcon icon = null;
-        try {
-            icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources" + resourcePath)));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return new JLabel(icon);
+    private JLabel loadBackground() {
+        ImageIcon icon = new ImageIcon(getClass().getResource("/Resources/race1.png"));
+        Image scaledImage = icon.getImage().getScaledInstance(GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT, Image.SCALE_SMOOTH);
+        return new JLabel(new ImageIcon(scaledImage));
+    }
+
+    private JLabel loadCarImage() {
+        ImageIcon icon = new ImageIcon(getClass().getResource("/Resources/player_car.png"));
+        Image scaledImage = icon.getImage().getScaledInstance(GameConfig.CAR_WIDTH, GameConfig.CAR_HEIGHT, Image.SCALE_SMOOTH);
+        return new JLabel(new ImageIcon(scaledImage));
     }
 
     public void startGame() {
         new Timer(50, e -> {
             if (!gameOver) {
                 moveBackground();
-                moveObstacles();
+                obstacleManager.moveObstacles();
                 checkCollisions();
-                gameState.notifyObservers();
                 updateUI();
             }
         }).start();
 
-        new Timer(2000, e -> {
-            if (!gameOver) {
-                spawnObstacleCar();
-            }
-        }).start();
+        new Timer(2000, e -> obstacleManager.spawnObstacle()).start();
     }
 
     private void moveBackground() {
-        backgroundY1 += 5;
-        backgroundY2 += 5;
+        backgroundY1 += GameConfig.BACKGROUND_SPEED;
+        backgroundY2 += GameConfig.BACKGROUND_SPEED;
 
-        if (backgroundY1 >= 500) {
-            backgroundY1 = -500;
-        }
-        if (backgroundY2 >= 500) {
-            backgroundY2 = -500;
-        }
+        if (backgroundY1 >= GameConfig.FRAME_HEIGHT) backgroundY1 = -GameConfig.FRAME_HEIGHT;
+        if (backgroundY2 >= GameConfig.FRAME_HEIGHT) backgroundY2 = -GameConfig.FRAME_HEIGHT;
 
-        background1.setBounds(0, backgroundY1, 740, 500);
-        background2.setBounds(0, backgroundY2, 740, 500);
-    }
-
-    private void spawnObstacleCar() {
-        int x = random.nextInt(300) + 200;
-        JLabel obstacleCar = loadImage("/car_mask.png");
-        if (obstacleCar.getIcon() != null) {
-            obstacleCar.setBounds(x, -100, 36, 57);
-            obstacleCars.add(obstacleCar);
-            frame.add(obstacleCar, 0);
-        }
-    }
-
-    private void moveObstacles() {
-        List<JLabel> carsToRemove = new ArrayList<>();
-        for (JLabel obstacleCar : obstacleCars) {
-            int newY = obstacleCar.getY() + 5;
-            obstacleCar.setBounds(obstacleCar.getX(), newY, 36, 57);
-            if (newY > 530) {
-                carsToRemove.add(obstacleCar);
-            }
-        }
-        obstacleCars.removeAll(carsToRemove);
-        carsToRemove.forEach(frame::remove);
+        background1.setBounds(0, backgroundY1, GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT);
+        background2.setBounds(0, backgroundY2, GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT);
     }
 
     private void checkCollisions() {
-        Rectangle playerBounds = playerCarLabel.getBounds();
-        for (JLabel obstacleCar : obstacleCars) {
-            if (playerBounds.intersects(obstacleCar.getBounds())) {
-                endGame();
+        // Get shrunken bounds for the player car
+        Rectangle playerBounds = shrinkRectangle(playerCarLabel.getBounds(), 5, 10);
+
+        for (JLabel obstacle : obstacleManager.getObstacles()) {
+            // Get shrunken bounds for each obstacle
+            Rectangle obstacleBounds = shrinkRectangle(obstacle.getBounds(), 5, 10);
+
+            // Check for intersection between the shrunken bounds
+            if (playerBounds.intersects(obstacleBounds)) {
+                gameOver();
                 break;
             }
         }
     }
 
-    private void updateUI() {
-        timerLabel.setText(timer.getFormattedTime());
-        playerCarLabel.setBounds(playerCar.getPositionX(), playerCar.getPositionY(), 36, 57);
-
-        if (playerCar.isNitroActive()) {
-            if (nitroEffect == null) {
-                nitroEffect = loadImage("/nitro.png");
-                frame.add(nitroEffect, 0);
-            }
-            nitroEffect.setBounds(playerCar.getPositionX() - 10, playerCar.getPositionY() + 40, 50, 50);
-        } else if (nitroEffect != null) {
-            frame.remove(nitroEffect);
-            nitroEffect = null;
-        }
-
-        frame.repaint();
+    // Helper method to shrink a rectangle (add padding)
+    private Rectangle shrinkRectangle(Rectangle rect, int dx, int dy) {
+        return new Rectangle(
+                rect.x + dx,                // Move x inward
+                rect.y + dy,                // Move y inward
+                rect.width - 2 * dx,        // Reduce width
+                rect.height - 2 * dy        // Reduce height
+        );
     }
 
-    private void endGame() {
+
+    private void gameOver() {
         gameOver = true;
-        JOptionPane.showMessageDialog(frame, "Game Over! You lasted: " + timer.getFormattedTime(), "Game Over", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, "Game Over!", "Game Over", JOptionPane.ERROR_MESSAGE);
         System.exit(0);
     }
 
+    private void updateUI() {
+        playerCarLabel.setBounds(playerCar.getPositionX(), playerCar.getPositionY(), GameConfig.CAR_WIDTH, GameConfig.CAR_HEIGHT);
+        frame.repaint();
+    }
+
     @Override
-    public void keyPressed(KeyEvent ke) {
-        if (!gameOver) {
-            int keyCode = ke.getKeyCode();
-
-            if (keyCode == KeyEvent.VK_N) { // Activate nitro when 'N' is pressed
-                playerCar.activateNitro();
-                new Timer(10000, e -> playerCar.deactivateNitro()).setRepeats(false); // Deactivate nitro after 10 seconds
-            }
-
-            if (keyCode == KeyEvent.VK_LEFT) {
-                playerCar.moveLeft();
-            } else if (keyCode == KeyEvent.VK_RIGHT) {
-                playerCar.moveRight();
-            } else if (keyCode == KeyEvent.VK_UP) {
-                playerCar.moveUp();
-            } else if (keyCode == KeyEvent.VK_DOWN) {
-                playerCar.moveDown();
-            }
-
-            updateUI();
+    public void keyPressed(KeyEvent e) {
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_LEFT -> playerCar.moveLeft();
+            case KeyEvent.VK_RIGHT -> playerCar.moveRight();
+            case KeyEvent.VK_UP -> playerCar.moveUp();
+            case KeyEvent.VK_DOWN -> playerCar.moveDown();
         }
     }
 
     @Override
-    public void keyReleased(KeyEvent ke) {
-        updateUI();
-    }
-
+    public void keyReleased(KeyEvent e) {}
     @Override
-    public void keyTyped(KeyEvent ke) {}
+    public void keyTyped(KeyEvent e) {}
 }

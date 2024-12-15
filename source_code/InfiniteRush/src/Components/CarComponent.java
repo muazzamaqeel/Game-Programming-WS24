@@ -8,7 +8,6 @@ public class CarComponent implements Observer {
 
     @Override
     public void update() {
-        // No additional logic needed for UI update
     }
 
     public void moveLeft() {
