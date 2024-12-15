@@ -1,4 +1,5 @@
 import Components.PlayerCar;
+import Components.Bullet;
 import StateManagement.GameConfig;
 import StateManagement.ObstacleManager;
 
@@ -6,10 +7,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Racing implements KeyListener {
     private final PlayerCar playerCar;
     private final ObstacleManager obstacleManager;
+    private final List<Bullet> bullets = new ArrayList<>();
 
     private JLabel playerCarLabel;
     private JLabel background1;
@@ -65,6 +69,8 @@ public class Racing implements KeyListener {
             if (!gameOver) {
                 moveBackground();
                 obstacleManager.moveObstacles();
+                moveBullets();
+                checkBulletCollisions();
                 checkCollisions();
                 updateUI();
             }
@@ -84,15 +90,42 @@ public class Racing implements KeyListener {
         background2.setBounds(0, backgroundY2, GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT);
     }
 
+    private void moveBullets() {
+        List<Bullet> toRemove = new ArrayList<>();
+        for (Bullet bullet : bullets) {
+            bullet.moveUp();
+            if (bullet.isOutOfScreen()) toRemove.add(bullet);
+        }
+        bullets.removeAll(toRemove);
+        toRemove.forEach(b -> frame.remove(b.getBulletLabel()));
+    }
+
+    private void checkBulletCollisions() {
+        List<JLabel> obstaclesToRemove = new ArrayList<>();
+        List<Bullet> bulletsToRemove = new ArrayList<>();
+
+        for (Bullet bullet : bullets) {
+            Rectangle bulletBounds = bullet.getBulletLabel().getBounds();
+            for (JLabel obstacle : obstacleManager.getObstacles()) {
+                if (bulletBounds.intersects(obstacle.getBounds())) {
+                    obstaclesToRemove.add(obstacle);
+                    bulletsToRemove.add(bullet);
+                    break;
+                }
+            }
+        }
+
+        bullets.removeAll(bulletsToRemove);
+        bulletsToRemove.forEach(b -> frame.remove(b.getBulletLabel()));
+        obstacleManager.getObstacles().removeAll(obstaclesToRemove);
+        obstaclesToRemove.forEach(frame::remove);
+    }
+
     private void checkCollisions() {
-        // Get shrunken bounds for the player car
         Rectangle playerBounds = shrinkRectangle(playerCarLabel.getBounds(), 5, 10);
 
         for (JLabel obstacle : obstacleManager.getObstacles()) {
-            // Get shrunken bounds for each obstacle
             Rectangle obstacleBounds = shrinkRectangle(obstacle.getBounds(), 5, 10);
-
-            // Check for intersection between the shrunken bounds
             if (playerBounds.intersects(obstacleBounds)) {
                 gameOver();
                 break;
@@ -100,22 +133,35 @@ public class Racing implements KeyListener {
         }
     }
 
-    // Helper method to shrink a rectangle (add padding)
     private Rectangle shrinkRectangle(Rectangle rect, int dx, int dy) {
         return new Rectangle(
-                rect.x + dx,                // Move x inward
-                rect.y + dy,                // Move y inward
-                rect.width - 2 * dx,        // Reduce width
-                rect.height - 2 * dy        // Reduce height
+                rect.x + dx,
+                rect.y + dy,
+                rect.width - 2 * dx,
+                rect.height - 2 * dy
         );
     }
-
 
     private void gameOver() {
         gameOver = true;
         JOptionPane.showMessageDialog(frame, "Game Over!", "Game Over", JOptionPane.ERROR_MESSAGE);
         System.exit(0);
     }
+
+    private void shootBullet() {
+        // Adjust bullet starting position to center it above the player car
+        int bulletWidth = 30;  // Match the bullet width in Bullet class
+        int bulletHeight = 30; // Match the bullet height
+        int bulletX = playerCar.getPositionX() + GameConfig.CAR_WIDTH / 2 - bulletWidth / 2;
+        int bulletY = playerCar.getPositionY() - bulletHeight;
+
+        // Create and add the bullet to the game
+        Bullet bullet = new Bullet(bulletX, bulletY);
+        bullets.add(bullet);
+        frame.add(bullet.getBulletLabel(), 0); // Add bullet to the frame
+        frame.repaint();
+    }
+
 
     private void updateUI() {
         playerCarLabel.setBounds(playerCar.getPositionX(), playerCar.getPositionY(), GameConfig.CAR_WIDTH, GameConfig.CAR_HEIGHT);
@@ -129,6 +175,7 @@ public class Racing implements KeyListener {
             case KeyEvent.VK_RIGHT -> playerCar.moveRight();
             case KeyEvent.VK_UP -> playerCar.moveUp();
             case KeyEvent.VK_DOWN -> playerCar.moveDown();
+            case KeyEvent.VK_A -> shootBullet(); // Press 'A' to shoot
         }
     }
 
