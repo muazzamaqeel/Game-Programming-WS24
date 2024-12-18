@@ -2,6 +2,7 @@ package Windows;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 
 public class Menu extends JFrame {
     public Menu() {
@@ -26,7 +27,10 @@ public class Menu extends JFrame {
         JButton quitButton = createStyledButton("Quit");
 
         // Add actions to buttons
-        playButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Play Clicked"));
+        playButton.addActionListener(e -> {
+            this.dispose(); // Close the menu window
+            new Racing();   // Start the Racing game
+        });
         settingsButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Settings Clicked"));
         quitButton.addActionListener(e -> System.exit(0));
 
@@ -64,7 +68,7 @@ public class Menu extends JFrame {
         private final Image backgroundImage;
 
         public BackgroundPanel(String imagePath) {
-            backgroundImage = new ImageIcon(getClass().getResource(imagePath)).getImage();
+            backgroundImage = new ImageIcon(Objects.requireNonNull(getClass().getResource(imagePath))).getImage();
 
             // Debugging check
             if (backgroundImage == null) {
