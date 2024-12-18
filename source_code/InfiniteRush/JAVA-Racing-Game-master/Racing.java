@@ -10,7 +10,7 @@ class Racing extends Thread implements KeyListener
 	
 	Racing()
 	{
-		f=new JFrame("Racing");
+		f=new JFrame("Windows.Racing");
 		f.setSize(740,530);
 		f.setVisible(true);
 		f.setDefaultCloseOperation(f.EXIT_ON_CLOSE);

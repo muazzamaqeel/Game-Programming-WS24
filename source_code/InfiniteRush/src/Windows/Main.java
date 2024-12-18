@@ -1,6 +1,7 @@
+package Windows;
+
 public class Main {
     public static void main(String[] args) {
-        Racing racing = new Racing();
-        racing.startGame();
+        new Windows.Menu();
     }
 }

@@ -1,6 +1,6 @@
-# JAVA-Racing-Game
+# JAVA-Windows.Racing-Game
 A simple racing game developed using java swing.
-Note:- Duplicating Nokia Racing
+Note:- Duplicating Nokia Windows.Racing
 
 Using:
 1. Clone the repo in local machine or download repo as Zip on local machine & extract it
@@ -11,9 +11,9 @@ Using:
 
 3. Run the command:
   
-   <code>javac Racing.java</code>
+   <code>javac Windows.Racing.java</code>
    
-   <code>java Racing</code>
+   <code>java Windows.Racing</code>
    
 Yooo!!!! It's done, enjoy playing the game
 
