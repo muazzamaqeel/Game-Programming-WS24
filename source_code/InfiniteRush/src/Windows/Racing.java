@@ -1,3 +1,5 @@
+package Windows;
+
 import Components.PlayerCar;
 import Components.Bullet;
 import StateManagement.GameConfig;
@@ -9,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Racing implements KeyListener {
     private final PlayerCar playerCar;
@@ -19,14 +22,14 @@ public class Racing implements KeyListener {
     private JLabel background1;
     private JLabel background2;
 
-    private JFrame frame;
+    private final JFrame frame;
     private int backgroundY1 = 0;
     private int backgroundY2 = -GameConfig.FRAME_HEIGHT;
     private boolean gameOver;
 
     Racing() {
         playerCar = new PlayerCar(GameConfig.LEFT_MARGIN, GameConfig.FRAME_HEIGHT - 150);
-        frame = new JFrame("Racing Game");
+        frame = new JFrame("Windows.Racing Game");
         obstacleManager = new ObstacleManager(frame);
         initUI();
     }
@@ -51,19 +54,16 @@ public class Racing implements KeyListener {
 
         startGame();
     }
-
     private JLabel loadBackground() {
-        ImageIcon icon = new ImageIcon(getClass().getResource("/Resources/race1.png"));
+        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources/race1.png")));
         Image scaledImage = icon.getImage().getScaledInstance(GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT, Image.SCALE_SMOOTH);
         return new JLabel(new ImageIcon(scaledImage));
     }
-
     private JLabel loadCarImage() {
-        ImageIcon icon = new ImageIcon(getClass().getResource("/Resources/player_car.png"));
+        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources/player_car.png")));
         Image scaledImage = icon.getImage().getScaledInstance(GameConfig.CAR_WIDTH, GameConfig.CAR_HEIGHT, Image.SCALE_SMOOTH);
         return new JLabel(new ImageIcon(scaledImage));
     }
-
     public void startGame() {
         new Timer(50, e -> {
             if (!gameOver) {
@@ -78,7 +78,6 @@ public class Racing implements KeyListener {
 
         new Timer(2000, e -> obstacleManager.spawnObstacle()).start();
     }
-
     private void moveBackground() {
         backgroundY1 += GameConfig.BACKGROUND_SPEED;
         backgroundY2 += GameConfig.BACKGROUND_SPEED;
@@ -89,7 +88,6 @@ public class Racing implements KeyListener {
         background1.setBounds(0, backgroundY1, GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT);
         background2.setBounds(0, backgroundY2, GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT);
     }
-
     private void moveBullets() {
         List<Bullet> toRemove = new ArrayList<>();
         for (Bullet bullet : bullets) {

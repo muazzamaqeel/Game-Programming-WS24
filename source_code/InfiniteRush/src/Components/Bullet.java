@@ -2,6 +2,7 @@ package Components;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 
 public class Bullet {
     private int positionX;
@@ -17,7 +18,7 @@ public class Bullet {
         int bulletHeight = 50;
 
         // Load the bullet image
-        ImageIcon icon = new ImageIcon(getClass().getResource("/Resources/bullet.png"));
+        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources/bullet.png")));
         Image scaledImage = icon.getImage().getScaledInstance(bulletWidth, bulletHeight, Image.SCALE_SMOOTH);
         bulletLabel = new JLabel(new ImageIcon(scaledImage));
 

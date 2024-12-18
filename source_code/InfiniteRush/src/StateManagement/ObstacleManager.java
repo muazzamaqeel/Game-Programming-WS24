@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public class ObstacleManager {
@@ -20,7 +21,7 @@ public class ObstacleManager {
     public void spawnObstacle() {
         for (int i = 0; i < 3; i++) { // Spawn 3 cars at a time
             JLabel obstacle = new JLabel();
-            ImageIcon icon = new ImageIcon(getClass().getResource("/Resources/car_mask.png"));
+            ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources/car_mask.png")));
             Image scaledImage = icon.getImage().getScaledInstance(GameConfig.CAR_WIDTH, GameConfig.CAR_HEIGHT, Image.SCALE_SMOOTH);
             obstacle.setIcon(new ImageIcon(scaledImage));
 
