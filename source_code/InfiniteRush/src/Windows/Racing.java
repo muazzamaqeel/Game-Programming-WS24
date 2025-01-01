@@ -21,11 +21,13 @@ public class Racing implements KeyListener {
     private JLabel playerCarLabel;
     private JLabel background1;
     private JLabel background2;
+    private JLabel pauseLabel;
 
     private final JFrame frame;
     private int backgroundY1 = 0;
     private int backgroundY2 = -GameConfig.FRAME_HEIGHT;
     private boolean gameOver;
+    private boolean paused = false;
 
     Racing() {
         playerCar = new PlayerCar(GameConfig.LEFT_MARGIN, GameConfig.FRAME_HEIGHT - 150);
@@ -36,6 +38,8 @@ public class Racing implements KeyListener {
 
     private void initUI() {
         // Set to full window size without fullscreen
+
+
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setSize(GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -44,13 +48,19 @@ public class Racing implements KeyListener {
         background1 = loadBackground();
         background2 = loadBackground();
         playerCarLabel = loadCarImage();
+        pauseLabel = createPauseLabel();
 
         frame.add(background1);
         frame.add(background2);
         frame.add(playerCarLabel, 0);
+        pauseLabel.setVisible(false);
 
         frame.addKeyListener(this);
         frame.setVisible(true);
+        frame.add(pauseLabel);
+        pauseLabel.setVisible(false);
+
+
 
         startGame();
     }
@@ -64,9 +74,18 @@ public class Racing implements KeyListener {
         Image scaledImage = icon.getImage().getScaledInstance(GameConfig.CAR_WIDTH, GameConfig.CAR_HEIGHT, Image.SCALE_SMOOTH);
         return new JLabel(new ImageIcon(scaledImage));
     }
+
+    private JLabel createPauseLabel() {
+        JLabel label = new JLabel("Paused", SwingConstants.CENTER);
+        label.setFont(new Font("Arial", Font.BOLD, 48)); 
+        label.setForeground(Color.RED); 
+        label.setBounds(GameConfig.FRAME_WIDTH / 2 - 100, GameConfig.FRAME_HEIGHT / 2 - 50, 200, 100);
+        return label;
+    }
+
     public void startGame() {
         new Timer(50, e -> {
-            if (!gameOver) {
+            if (!gameOver && !paused) {
                 moveBackground();
                 obstacleManager.moveObstacles();
                 moveBullets();
@@ -76,7 +95,11 @@ public class Racing implements KeyListener {
             }
         }).start();
 
-        new Timer(2000, e -> obstacleManager.spawnObstacle()).start();
+        new Timer(2000, e -> {
+            if (!paused) {
+                obstacleManager.spawnObstacle();
+            }
+        }).start();
     }
     private void moveBackground() {
         backgroundY1 += GameConfig.BACKGROUND_SPEED;
@@ -168,6 +191,12 @@ public class Racing implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if(e.getKeyCode() == KeyEvent.VK_SPACE){
+            paused = !paused;
+            pauseLabel.setVisible(paused);
+            frame.repaint();
+        }
+        if(!paused){
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT -> playerCar.moveLeft();
             case KeyEvent.VK_RIGHT -> playerCar.moveRight();
@@ -176,6 +205,7 @@ public class Racing implements KeyListener {
             case KeyEvent.VK_A -> shootBullet(); // Press 'A' to shoot
         }
     }
+}
 
     @Override
     public void keyReleased(KeyEvent e) {}
