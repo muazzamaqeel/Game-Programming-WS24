@@ -196,6 +196,9 @@ public class Racing implements KeyListener {
             pauseLabel.setVisible(paused);
             frame.repaint();
         }
+        if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
+            System.exit(0);
+        }
         if(!paused){
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT -> playerCar.moveLeft();
