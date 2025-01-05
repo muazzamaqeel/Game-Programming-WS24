@@ -53,16 +53,17 @@ public class Racing implements KeyListener {
         frame.add(background1);
         frame.add(background2);
         frame.add(playerCarLabel, 0);
-        pauseLabel.setVisible(false);
+
 
         frame.addKeyListener(this);
         frame.setVisible(true);
-        frame.add(pauseLabel);
-        pauseLabel.setVisible(false);
-
-
 
         startGame();
+
+        frame.add(pauseLabel);
+        frame.setComponentZOrder(pauseLabel, 0);
+        pauseLabel.setVisible(false);
+
     }
     private JLabel loadBackground() {
         ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources/race1.png")));
@@ -75,13 +76,30 @@ public class Racing implements KeyListener {
         return new JLabel(new ImageIcon(scaledImage));
     }
 
+
+    // not working
     private JLabel createPauseLabel() {
         JLabel label = new JLabel("Paused", SwingConstants.CENTER);
-        label.setFont(new Font("Arial", Font.BOLD, 48)); 
-        label.setForeground(Color.RED); 
-        label.setBounds(GameConfig.FRAME_WIDTH / 2 - 100, GameConfig.FRAME_HEIGHT / 2 - 50, 200, 100);
+        label.setFont(new Font("Arial", Font.BOLD, 48)); // Large font for visibility
+        label.setForeground(Color.RED); // Bright red for contrast
+
+        int labelWidth = 300;
+        int labelHeight = 100;
+        int x = (GameConfig.FRAME_WIDTH - labelWidth) / 2;
+        int y = (GameConfig.FRAME_HEIGHT - labelHeight) / 2;
+
+        label.setBounds(x, y, labelWidth, labelHeight); // Temporary bounds, will be centered later
         return label;
     }
+
+    private void updatePauseLabelPosition() {
+        int labelWidth = 300;
+        int labelHeight = 100;
+        int x = (frame.getWidth() - labelWidth) / 2;
+        int y = (frame.getHeight() - labelHeight) / 2;
+        pauseLabel.setBounds(x, y, labelWidth, labelHeight);
+    }
+    
 
     public void startGame() {
         new Timer(50, e -> {
@@ -192,9 +210,16 @@ public class Racing implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if(e.getKeyCode() == KeyEvent.VK_SPACE){
-            paused = !paused;
-            pauseLabel.setVisible(paused);
+            paused=!paused;
+            if (paused) {
+                updatePauseLabelPosition();
+                pauseLabel.setVisible(true);
+            } else {
+                pauseLabel.setVisible(false);
+            }
+            frame.revalidate();
             frame.repaint();
+            
         }
         if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
             System.exit(0);
