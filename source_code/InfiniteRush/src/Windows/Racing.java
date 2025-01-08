@@ -6,17 +6,22 @@ import StateManagement.GameConfig;
 import StateManagement.ObstacleManager;
 import Components.Music;
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 
 public class Racing implements KeyListener {
     private final PlayerCar playerCar;
     private final ObstacleManager obstacleManager;
     private final List<Bullet> bullets = new ArrayList<>();
+    // --- NEW FIELDS FOR SCORE FUNCTIONALITY ---
+    private int score = 0;
+    private JLabel scoreLabel;
+    private final Map<JLabel, Boolean> obstaclePassed = new HashMap<>();
+    // ------------------------------------------
 
     private JLabel playerCarLabel;
     private JLabel background1;
@@ -61,6 +66,9 @@ public class Racing implements KeyListener {
         frame.add(background2);
         frame.add(playerCarLabel, 0);
 
+        // --- NEW: Scoreboard Setup ---
+        initScoreboard();
+        // -----------------------------
 
         frame.addKeyListener(this);
         frame.setVisible(true);
@@ -72,6 +80,38 @@ public class Racing implements KeyListener {
         pauseLabel.setVisible(false);
 
     }
+
+    /**
+     * Creates the scoreboard label and positions it on the frame.
+     */
+    private void initScoreboard() {
+        scoreLabel = new JLabel("Score: 0");
+
+        // Make label opaque (so background color is visible)
+        scoreLabel.setOpaque(true);
+
+        // Example: semi-transparent black background
+        scoreLabel.setBackground(new Color(0, 0, 0, 180));
+
+        // Font styling
+        scoreLabel.setFont(new Font("Arial", Font.BOLD, 30));
+        scoreLabel.setForeground(Color.WHITE);
+
+        // Optional: add a colored border (with rounded corners if you wish)
+        // BorderFactory.createLineBorder(Color color, int thickness, boolean roundedCorners)
+        scoreLabel.setBorder(BorderFactory.createLineBorder(Color.CYAN, 2, true));
+
+        // Center the text vertically and horizontally inside the label
+        scoreLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        scoreLabel.setVerticalAlignment(SwingConstants.CENTER);
+
+        // Position it on the frame. Adjust size and position as needed.
+        scoreLabel.setBounds(50, 50, 200, 50);
+
+        // Finally, add to the frame (and ensure it's on top of backgrounds)
+        frame.add(scoreLabel, 0);
+    }
+
     private JLabel loadBackground() {
         ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources/race1.png")));
         Image scaledImage = icon.getImage().getScaledInstance(GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT, Image.SCALE_SMOOTH);
@@ -116,6 +156,9 @@ public class Racing implements KeyListener {
                 moveBullets();
                 checkBulletCollisions();
                 checkCollisions();
+                // --- NEW: Check if obstacles have passed the player (score increment) ---
+                checkObstaclesPassed();
+                // ------------------------------------------------------------------------
                 updateUI();
             }
         }).start();
@@ -126,6 +169,35 @@ public class Racing implements KeyListener {
             }
         }).start();
     }
+
+    // --- NEW METHODS FOR SCORE UPDATES ---
+
+    /**
+     * Checks which obstacles have passed below the player car and increments score.
+     */
+    private void checkObstaclesPassed() {
+        int playerBottom = playerCar.getPositionY() + GameConfig.CAR_HEIGHT;
+
+        for (JLabel obstacle : obstacleManager.getObstacles()) {
+            // Make sure we track each obstacle in the map
+            obstaclePassed.putIfAbsent(obstacle, false);
+
+            // If not marked passed yet, and it's now below the player's bottom
+            if (!obstaclePassed.get(obstacle) && obstacle.getY() > playerBottom) {
+                obstaclePassed.put(obstacle, true);
+                score++;
+                updateScoreLabel();
+            }
+        }
+    }
+
+    /**
+     * Updates the text of the score label to reflect the current score.
+     */
+    private void updateScoreLabel() {
+        scoreLabel.setText("Score: " + score);
+    }
+    // ------------------------------------
     private void moveBackground() {
         backgroundY1 += GameConfig.BACKGROUND_SPEED;
         backgroundY2 += GameConfig.BACKGROUND_SPEED;
