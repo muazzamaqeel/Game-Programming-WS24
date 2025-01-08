@@ -37,7 +37,10 @@ public class Racing implements KeyListener {
     private boolean paused = false;
 
     private final Music backgroundMusic;
-    // --- NEW: Track if we've already triggered the limit-based game over
+    private boolean leftPressed = false;
+    private boolean rightPressed = false;
+    private boolean upPressed = false;
+    private boolean downPressed = false;
     private boolean limitReached = false;
 
     Racing() {
@@ -172,28 +175,43 @@ public class Racing implements KeyListener {
 
 
     public void startGame() {
+        // The main game timer
         new Timer(50, e -> {
             if (!gameOver && !paused) {
+
+                // --- NEW - Faster: Check which keys are pressed and move car accordingly ---
+                if (leftPressed) {
+                    playerCar.moveLeft();
+                }
+                if (rightPressed) {
+                    playerCar.moveRight();
+                }
+                if (upPressed) {
+                    playerCar.moveUp();
+                }
+                if (downPressed) {
+                    playerCar.moveDown();
+                }
+                // ---------------------------------------------------------------------------
+
                 moveBackground();
                 obstacleManager.moveObstacles();
                 moveBullets();
                 checkBulletCollisions();
                 checkCollisions();
-                // --- NEW: Check if obstacles have passed the player (score increment) ---
                 checkObstaclesPassed();
-                // ------------------------------------------------------------------------
+
                 updateUI();
             }
         }).start();
 
+        // The obstacle spawn timer
         new Timer(2000, e -> {
             if (!paused) {
                 obstacleManager.spawnObstacle();
             }
         }).start();
     }
-
-    // --- NEW METHODS FOR SCORE UPDATES ---
 
     /**
      * Checks which obstacles have passed below the player car and increments score.
@@ -363,19 +381,26 @@ public class Racing implements KeyListener {
         if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
             System.exit(0);
         }
-        if(!paused){
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_LEFT -> playerCar.moveLeft();
-            case KeyEvent.VK_RIGHT -> playerCar.moveRight();
-            case KeyEvent.VK_UP -> playerCar.moveUp();
-            case KeyEvent.VK_DOWN -> playerCar.moveDown();
-            case KeyEvent.VK_A -> shootBullet(); // Press 'A' to shoot
+        if (!paused) {
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_LEFT -> leftPressed = true;
+                case KeyEvent.VK_RIGHT -> rightPressed = true;
+                case KeyEvent.VK_UP -> upPressed = true;
+                case KeyEvent.VK_DOWN -> downPressed = true;
+                case KeyEvent.VK_A -> shootBullet(); // Press 'A' to shoot
+            }
         }
     }
-}
 
     @Override
-    public void keyReleased(KeyEvent e) {}
+    public void keyReleased(KeyEvent e) {
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_LEFT -> leftPressed = false;
+            case KeyEvent.VK_RIGHT -> rightPressed = false;
+            case KeyEvent.VK_UP -> upPressed = false;
+            case KeyEvent.VK_DOWN -> downPressed = false;
+        }
+    }
     @Override
     public void keyTyped(KeyEvent e) {}
 }
