@@ -302,17 +302,23 @@ public class Racing implements KeyListener {
         int playerBottom = playerCar.getPositionY() + GameConfig.CAR_HEIGHT;
 
         for (JLabel obstacle : obstacleManager.getObstacles()) {
-            // Make sure we track each obstacle in the map
             obstaclePassed.putIfAbsent(obstacle, false);
 
-            // If not marked passed yet, and it's now below the player's bottom
             if (!obstaclePassed.get(obstacle) && obstacle.getY() > playerBottom) {
                 obstaclePassed.put(obstacle, true);
                 score++;
                 updateScoreLabel();
+
+                // --- NEW - Difficulty: if score hits 10, 20, 30... increase obstacle speed
+                if (score % 10 == 0) {
+                    obstacleManager.increaseSpeed(2); // Increase speed by 2 each time
+                    // You can tweak the amount as desired.
+                }
+                // ----------------------------------------------
             }
         }
     }
+
 
     /**
      * Updates the text of the score label to reflect the current score.

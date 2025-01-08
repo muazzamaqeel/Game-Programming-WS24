@@ -12,14 +12,20 @@ public class ObstacleManager {
     private final JFrame frame;
     private final Random random;
 
+    // --- NEW - Difficulty: track current obstacle speed
+    private int currentSpeed;
+
     public ObstacleManager(JFrame frame) {
         this.frame = frame;
         this.obstacles = new ArrayList<>();
         this.random = new Random();
+
+        // Initialize speed to the default from GameConfig
+        this.currentSpeed = GameConfig.OBSTACLE_SPEED;
     }
 
     public void spawnObstacle() {
-        for (int i = 0; i < 3; i++) { // Spawn 3 cars at a time
+        for (int i = 0; i < 3; i++) {
             JLabel obstacle = new JLabel();
             ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources/car_mask.png")));
             Image scaledImage = icon.getImage().getScaledInstance(GameConfig.CAR_WIDTH, GameConfig.CAR_HEIGHT, Image.SCALE_SMOOTH);
@@ -36,12 +42,27 @@ public class ObstacleManager {
     public void moveObstacles() {
         List<JLabel> toRemove = new ArrayList<>();
         for (JLabel obstacle : obstacles) {
-            int newY = obstacle.getY() + GameConfig.OBSTACLE_SPEED;
+            // Use currentSpeed instead of GameConfig.OBSTACLE_SPEED
+            int newY = obstacle.getY() + currentSpeed;
             obstacle.setBounds(obstacle.getX(), newY, GameConfig.CAR_WIDTH, GameConfig.CAR_HEIGHT);
-            if (newY > GameConfig.FRAME_HEIGHT) toRemove.add(obstacle);
+
+            if (newY > GameConfig.FRAME_HEIGHT) {
+                toRemove.add(obstacle);
+            }
         }
         obstacles.removeAll(toRemove);
         toRemove.forEach(frame::remove);
+    }
+
+
+    // --- NEW - Difficulty: allow external classes to raise the speed
+    public void increaseSpeed(int amount) {
+        this.currentSpeed += amount;
+        // Optionally clamp or log to avoid too big speeds if you want
+    }
+
+    public int getCurrentSpeed() {
+        return currentSpeed;
     }
 
     public List<JLabel> getObstacles() {
