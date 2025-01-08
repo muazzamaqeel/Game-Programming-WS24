@@ -21,8 +21,10 @@ public class Racing implements KeyListener {
     private int score = 0;
     private JLabel scoreLabel;
     private final Map<JLabel, Boolean> obstaclePassed = new HashMap<>();
-    // ------------------------------------------
-
+    // --- NEW: Car destruction limit fields ---
+    private int carLimit = 5;           // We start with a limit of 5 cars to destroy
+    private JLabel limitLabel;          // Label to display the "Limit: 5 Cars"
+    // -----------------------------------------
     private JLabel playerCarLabel;
     private JLabel background1;
     private JLabel background2;
@@ -35,6 +37,8 @@ public class Racing implements KeyListener {
     private boolean paused = false;
 
     private final Music backgroundMusic;
+    // --- NEW: Track if we've already triggered the limit-based game over
+    private boolean limitReached = false;
 
     Racing() {
         playerCar = new PlayerCar(GameConfig.LEFT_MARGIN, GameConfig.FRAME_HEIGHT - 150);
@@ -65,10 +69,8 @@ public class Racing implements KeyListener {
         frame.add(background1);
         frame.add(background2);
         frame.add(playerCarLabel, 0);
-
-        // --- NEW: Scoreboard Setup ---
         initScoreboard();
-        // -----------------------------
+        initLimitLabel();    // --- NEW: Adds the “Limit: 5 Cars” label
 
         frame.addKeyListener(this);
         frame.setVisible(true);
@@ -111,7 +113,28 @@ public class Racing implements KeyListener {
         // Finally, add to the frame (and ensure it's on top of backgrounds)
         frame.add(scoreLabel, 0);
     }
+    // --- NEW: Separate label for “Limit: 5 Cars” ---
+    private void initLimitLabel() {
+        limitLabel = new JLabel("Limit: " + carLimit + " Cars");
 
+        // Make label similarly styled
+        limitLabel.setOpaque(true);
+        limitLabel.setBackground(new Color(0, 0, 0, 180));
+        limitLabel.setFont(new Font("Arial", Font.BOLD, 30));
+        limitLabel.setForeground(Color.WHITE);
+        limitLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        limitLabel.setVerticalAlignment(SwingConstants.CENTER);
+        limitLabel.setBorder(BorderFactory.createLineBorder(Color.GREEN, 2, true));
+
+        // Position slightly below the score label
+        limitLabel.setBounds(50, 110, 250, 50);
+        frame.add(limitLabel, 0);
+    }
+    // --- NEW: Update limit label text
+    private void updateLimitLabel() {
+        limitLabel.setText("Limit: " + carLimit + " Cars");
+    }
+    // --------------------------------------------------------------------------------------------
     private JLabel loadBackground() {
         ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources/race1.png")));
         Image scaledImage = icon.getImage().getScaledInstance(GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT, Image.SCALE_SMOOTH);
@@ -218,7 +241,14 @@ public class Racing implements KeyListener {
         toRemove.forEach(b -> frame.remove(b.getBulletLabel()));
     }
 
+    /**
+     * Checks if bullets have collided with obstacles, removing both on collision
+     * and decrementing the limit by 1. If limit hits 0, show Game Over -> go to Menu.
+     */
     private void checkBulletCollisions() {
+        // If we've already triggered the limit-based game over, skip
+        if (limitReached) return;
+
         List<JLabel> obstaclesToRemove = new ArrayList<>();
         List<Bullet> bulletsToRemove = new ArrayList<>();
 
@@ -228,6 +258,32 @@ public class Racing implements KeyListener {
                 if (bulletBounds.intersects(obstacle.getBounds())) {
                     obstaclesToRemove.add(obstacle);
                     bulletsToRemove.add(bullet);
+
+                    // Only decrement limit if we haven't reached game over yet
+                    if (!limitReached) {
+                        carLimit--;
+                        updateLimitLabel();
+
+                        // If limit is now 0 or below, trigger game over once
+                        if (carLimit <= 0) {
+                            limitReached = true; // Prevent repeated triggers
+                            backgroundMusic.stop();
+
+                            JOptionPane.showMessageDialog(
+                                    frame,
+                                    "Game Over! You destroyed all 5 cars.",
+                                    "Game Over",
+                                    JOptionPane.ERROR_MESSAGE
+                            );
+
+                            // Dispose of current game window, return to Menu
+                            frame.dispose();
+                            new Menu();
+                            return; // Exit the entire method immediately
+                        }
+                    }
+
+                    // Break out of obstacle loop for this bullet
                     break;
                 }
             }
@@ -235,9 +291,11 @@ public class Racing implements KeyListener {
 
         bullets.removeAll(bulletsToRemove);
         bulletsToRemove.forEach(b -> frame.remove(b.getBulletLabel()));
+
         obstacleManager.getObstacles().removeAll(obstaclesToRemove);
         obstaclesToRemove.forEach(frame::remove);
     }
+
 
     private void checkCollisions() {
         Rectangle playerBounds = shrinkRectangle(playerCarLabel.getBounds(), 5, 10);
