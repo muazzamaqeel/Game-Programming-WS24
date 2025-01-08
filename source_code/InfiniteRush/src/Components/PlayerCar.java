@@ -5,10 +5,6 @@ import StateManagement.GameConfig;
 public class PlayerCar {
     private int positionX;
     private int positionY;
-
-    // We removed "speed" and replaced it with dynamic logic below.
-
-    // --- NEW - Nitrous:
     private final Nitrous nitrous = new Nitrous();
 
     public PlayerCar(int startX, int startY) {
