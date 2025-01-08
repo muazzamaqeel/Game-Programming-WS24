@@ -4,7 +4,7 @@ import Components.PlayerCar;
 import Components.Bullet;
 import StateManagement.GameConfig;
 import StateManagement.ObstacleManager;
-
+import Components.Music;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -29,12 +29,19 @@ public class Racing implements KeyListener {
     private boolean gameOver;
     private boolean paused = false;
 
+    private final Music backgroundMusic;
+
     Racing() {
         playerCar = new PlayerCar(GameConfig.LEFT_MARGIN, GameConfig.FRAME_HEIGHT - 150);
         frame = new JFrame("Windows.Racing Game");
         obstacleManager = new ObstacleManager(frame);
+
+        // Initialize background music
+        backgroundMusic = new Music("/Resources/MusicData/track1.wav");
+        backgroundMusic.playLoop(); // Start playing music
         initUI();
     }
+
 
     private void initUI() {
         // Set to full window size without fullscreen
@@ -99,7 +106,7 @@ public class Racing implements KeyListener {
         int y = (frame.getHeight() - labelHeight) / 2;
         pauseLabel.setBounds(x, y, labelWidth, labelHeight);
     }
-    
+
 
     public void startGame() {
         new Timer(50, e -> {
@@ -183,6 +190,7 @@ public class Racing implements KeyListener {
 
     private void gameOver() {
         gameOver = true;
+        backgroundMusic.stop(); // Stop the music when the game ends
         JOptionPane.showMessageDialog(frame, "Game Over!", "Game Over", JOptionPane.ERROR_MESSAGE);
         System.exit(0);
     }
@@ -209,17 +217,18 @@ public class Racing implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if(e.getKeyCode() == KeyEvent.VK_SPACE){
-            paused=!paused;
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            paused = !paused;
             if (paused) {
                 updatePauseLabelPosition();
                 pauseLabel.setVisible(true);
+                backgroundMusic.stop(); // Pause music
             } else {
                 pauseLabel.setVisible(false);
+                backgroundMusic.playLoop(); // Resume music
             }
             frame.revalidate();
             frame.repaint();
-            
         }
         if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
             System.exit(0);
