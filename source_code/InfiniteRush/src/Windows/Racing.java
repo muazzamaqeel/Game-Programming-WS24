@@ -387,7 +387,8 @@ public class Racing implements KeyListener {
                 case KeyEvent.VK_RIGHT -> rightPressed = true;
                 case KeyEvent.VK_UP -> upPressed = true;
                 case KeyEvent.VK_DOWN -> downPressed = true;
-                case KeyEvent.VK_A -> shootBullet(); // Press 'A' to shoot
+                case KeyEvent.VK_A -> shootBullet();
+                case KeyEvent.VK_N -> playerCar.enableNitrous();
             }
         }
     }
@@ -399,6 +400,7 @@ public class Racing implements KeyListener {
             case KeyEvent.VK_RIGHT -> rightPressed = false;
             case KeyEvent.VK_UP -> upPressed = false;
             case KeyEvent.VK_DOWN -> downPressed = false;
+            case KeyEvent.VK_N -> playerCar.disableNitrous();
         }
     }
     @Override

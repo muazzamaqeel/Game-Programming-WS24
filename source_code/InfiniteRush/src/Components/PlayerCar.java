@@ -5,35 +5,49 @@ import StateManagement.GameConfig;
 public class PlayerCar {
     private int positionX;
     private int positionY;
-    private final int speed;
+
+    // We removed "speed" and replaced it with dynamic logic below.
+
+    // --- NEW - Nitrous:
+    private final Nitrous nitrous = new Nitrous();
 
     public PlayerCar(int startX, int startY) {
         this.positionX = startX;
         this.positionY = startY;
-        this.speed = GameConfig.NORMAL_SPEED;
     }
 
+    // --- NEW - Nitrous: public methods to toggle
+    public void enableNitrous() {
+        nitrous.activate();
+    }
+
+    public void disableNitrous() {
+        nitrous.deactivate();
+    }
+
+    // Now each move uses nitrous if active, otherwise normal speed
+
     public void moveLeft() {
-        positionX = Math.max(GameConfig.LEFT_MARGIN, positionX - speed);
+        int usedSpeed = nitrous.isActive() ? GameConfig.NITRO_SPEED : GameConfig.NORMAL_SPEED;
+        positionX = Math.max(GameConfig.LEFT_MARGIN, positionX - usedSpeed);
     }
 
     public void moveRight() {
-        positionX = Math.min(GameConfig.RIGHT_MARGIN, positionX + speed);
+        int usedSpeed = nitrous.isActive() ? GameConfig.NITRO_SPEED : GameConfig.NORMAL_SPEED;
+        positionX = Math.min(GameConfig.RIGHT_MARGIN, positionX + usedSpeed);
     }
 
     public void moveUp() {
-        positionY = Math.max(0, positionY - speed);
+        int usedSpeed = nitrous.isActive() ? GameConfig.NITRO_SPEED : GameConfig.NORMAL_SPEED;
+        positionY = Math.max(0, positionY - usedSpeed);
     }
 
     public void moveDown() {
-        positionY = Math.min(GameConfig.FRAME_HEIGHT - GameConfig.CAR_HEIGHT, positionY + speed);
+        int usedSpeed = nitrous.isActive() ? GameConfig.NITRO_SPEED : GameConfig.NORMAL_SPEED;
+        positionY = Math.min(GameConfig.FRAME_HEIGHT - GameConfig.CAR_HEIGHT, positionY + usedSpeed);
     }
 
-    public int getPositionX() {
-        return positionX;
-    }
-
-    public int getPositionY() {
-        return positionY;
-    }
+    // Accessors
+    public int getPositionX() { return positionX; }
+    public int getPositionY() { return positionY; }
 }
