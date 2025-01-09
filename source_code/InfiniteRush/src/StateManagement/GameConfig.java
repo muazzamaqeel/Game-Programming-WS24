@@ -9,7 +9,7 @@ public class GameConfig {
     public static final int CAR_WIDTH = 50;
     public static final int CAR_HEIGHT = 100;
     public static final int NORMAL_SPEED = 15;
-    public static final int NITRO_SPEED = 500;
+    public static final int NITRO_SPEED = 50;
     public static final int OBSTACLE_SPEED = 8;
     public static final int MARGIN_OFFSET = -50;
     public static final int LEFT_MARGIN = FRAME_WIDTH / 4 + MARGIN_OFFSET;
