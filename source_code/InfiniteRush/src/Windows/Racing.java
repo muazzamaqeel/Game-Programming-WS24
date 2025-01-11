@@ -56,10 +56,12 @@ public class Racing implements KeyListener {
     // We'll track how many seconds remain in the "current phase" (usage or cooldown)
     private int currentPhaseSeconds = 0;
     // ------------------------------------------------
+    private final String mapPath; // Add this field
 
-    Racing() {
+    public Racing(String mapPath) {
+        this.mapPath = mapPath; // Store the map path
         playerCar = new PlayerCar(GameConfig.LEFT_MARGIN, GameConfig.FRAME_HEIGHT - 150);
-        frame = new JFrame("Windows.Racing Game");
+        frame = new JFrame("Racing Game");
         obstacleManager = new ObstacleManager(frame);
 
         // Initialize background music
@@ -212,7 +214,7 @@ public class Racing implements KeyListener {
         limitLabel.setText("Limit: " + carLimit + " Cars");
     }
     private JLabel loadBackground() {
-        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources/race1.png")));
+        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource(mapPath)));
         Image scaledImage = icon.getImage().getScaledInstance(GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT, Image.SCALE_SMOOTH);
         return new JLabel(new ImageIcon(scaledImage));
     }

@@ -6,7 +6,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class Settings extends JFrame {
-    private String selectedMap = "/Resources/race1.png"; // Default map path
+    public static String selectedMap = "/Resources/race1.png"; // Default map path
 
     public Settings() {
         // Set the title, size, and close operation

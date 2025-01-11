@@ -29,8 +29,9 @@ public class Menu extends JFrame {
         // Add actions to buttons
         playButton.addActionListener(e -> {
             this.dispose(); // Close the menu window
-            new Racing();   // Start the Racing game
+            new Racing(Settings.selectedMap); // Pass the selected map to the Racing game
         });
+;
         // Inside the Menu constructor after creating settingsButton
         settingsButton.addActionListener(e -> {
             new Settings(); // Open the Settings window
