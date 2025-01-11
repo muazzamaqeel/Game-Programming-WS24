@@ -31,7 +31,10 @@ public class Menu extends JFrame {
             this.dispose(); // Close the menu window
             new Racing();   // Start the Racing game
         });
-        settingsButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Settings Clicked"));
+        // Inside the Menu constructor after creating settingsButton
+        settingsButton.addActionListener(e -> {
+            new Settings(); // Open the Settings window
+        });
         quitButton.addActionListener(e -> System.exit(0));
 
         // Add buttons to the button panel
