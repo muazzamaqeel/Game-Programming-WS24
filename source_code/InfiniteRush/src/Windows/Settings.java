@@ -6,6 +6,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class Settings extends JFrame {
+    private String selectedMap = "/Resources/race1.png"; // Default map path
+
     public Settings() {
         // Set the title, size, and close operation
         setTitle("Settings");
@@ -29,9 +31,9 @@ public class Settings extends JFrame {
         tabbedPane.setBorder(BorderFactory.createLineBorder(new Color(60, 60, 60), 2));
 
         // Add sections
-        tabbedPane.addTab("Instructions", createInstructionsPanel());
+        tabbedPane.addTab("Description", createDescriptionPanel());
+        tabbedPane.addTab("Map", createMapPanel());
         tabbedPane.addTab("Audio Settings", createAudioSettingsPanel());
-        tabbedPane.addTab("Graphics Settings", createGraphicsSettingsPanel());
         tabbedPane.addTab("Controls", createControlsPanel());
 
         // Add tabbed pane to the main panel
@@ -51,26 +53,124 @@ public class Settings extends JFrame {
         setVisible(true);
     }
 
-    private JPanel createInstructionsPanel() {
-        JPanel instructionsPanel = new JPanel(new BorderLayout());
-        instructionsPanel.setBackground(new Color(20, 20, 20)); // Dark theme background
+    private JPanel createDescriptionPanel() {
+        JPanel descriptionPanel = new JPanel(new BorderLayout());
+        descriptionPanel.setBackground(new Color(20, 20, 20)); // Dark theme background
 
-        JLabel titleLabel = new JLabel("Game Instructions", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("Game Description", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 20, 10));
 
-        JTable table = createInstructionTable();
+        JTextArea descriptionText = new JTextArea();
+        descriptionText.setText("""
+                Welcome to the ultimate Racing Game!
+                
+                Objective:
+                Navigate your car through a fast-paced highway while avoiding obstacles and other vehicles. Use your skills to dodge, shoot, and boost your way to a high score.
+                
+                Features:
+                - Use arrow keys to steer your car.
+                - Activate the Nitrous Boost for a temporary speed advantage.
+                - Destroy obstacles using bullets to clear your path.
+                - Choose from multiple maps to customize your racing experience.
+                - Avoid collisions to stay in the race and maximize your score.
+                
+                Are you ready to test your reflexes and strategy in this high-speed adventure? Enjoy the thrill of the race and aim for the highest score!
+                """);
+        descriptionText.setFont(new Font("Arial", Font.PLAIN, 16));
+        descriptionText.setForeground(Color.WHITE);
+        descriptionText.setBackground(new Color(30, 30, 30));
+        descriptionText.setEditable(false);
+        descriptionText.setLineWrap(true);
+        descriptionText.setWrapStyleWord(true);
+        descriptionText.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JScrollPane scrollPane = new JScrollPane(table);
+        JScrollPane scrollPane = new JScrollPane(descriptionText);
         scrollPane.setBackground(new Color(20, 20, 20));
-        scrollPane.getViewport().setBackground(new Color(20, 20, 20));
+        scrollPane.getViewport().setBackground(new Color(30, 30, 30));
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
-        instructionsPanel.add(titleLabel, BorderLayout.NORTH);
-        instructionsPanel.add(scrollPane, BorderLayout.CENTER);
+        descriptionPanel.add(titleLabel, BorderLayout.NORTH);
+        descriptionPanel.add(scrollPane, BorderLayout.CENTER);
 
-        return instructionsPanel;
+        return descriptionPanel;
+    }
+
+    private JPanel createMapPanel() {
+        JPanel mapPanel = new JPanel(new BorderLayout());
+        mapPanel.setBackground(new Color(20, 20, 20)); // Dark theme background
+
+        JLabel titleLabel = new JLabel("Select a Map", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 20, 10));
+
+        JLabel mapPreview = new JLabel();
+        mapPreview.setHorizontalAlignment(SwingConstants.CENTER);
+        mapPreview.setIcon(loadMapPreview(selectedMap));
+
+        JPanel mapSelectionPanel = new JPanel();
+        mapSelectionPanel.setBackground(new Color(20, 20, 20));
+        mapSelectionPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
+
+        JButton map1Button = createStyledButton("Map 1");
+        map1Button.addActionListener(e -> {
+            selectedMap = "/Resources/race1.png";
+            mapPreview.setIcon(loadMapPreview(selectedMap));
+        });
+
+        JButton map2Button = createStyledButton("Map 2");
+        map2Button.addActionListener(e -> {
+            selectedMap = "/Resources/race2.png";
+            mapPreview.setIcon(loadMapPreview(selectedMap));
+        });
+
+        JButton map3Button = createStyledButton("Map 3");
+        map3Button.addActionListener(e -> {
+            selectedMap = "/Resources/race3.png";
+            mapPreview.setIcon(loadMapPreview(selectedMap));
+        });
+
+        mapSelectionPanel.add(map1Button);
+        mapSelectionPanel.add(map2Button);
+        mapSelectionPanel.add(map3Button);
+
+        mapPanel.add(titleLabel, BorderLayout.NORTH);
+        mapPanel.add(mapPreview, BorderLayout.CENTER);
+        mapPanel.add(mapSelectionPanel, BorderLayout.SOUTH);
+
+        return mapPanel;
+    }
+
+    private ImageIcon loadMapPreview(String mapPath) {
+        java.net.URL resource = getClass().getResource(mapPath);
+        if (resource == null) {
+            System.err.println("Resource not found: " + mapPath);
+            return new ImageIcon(); // Return empty icon if resource is missing
+        }
+        ImageIcon icon = new ImageIcon(resource);
+        Image scaledImage = icon.getImage().getScaledInstance(600, 300, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaledImage);
+    }
+
+    private JPanel createAudioSettingsPanel() {
+        JPanel audioPanel = new JPanel(new GridLayout(2, 2, 20, 20));
+        audioPanel.setBackground(new Color(20, 20, 20));
+
+        JLabel bgMusicLabel = new JLabel("Background Music Volume:");
+        bgMusicLabel.setForeground(Color.WHITE);
+        JSlider bgMusicSlider = createStyledSlider();
+
+        JLabel sfxLabel = new JLabel("Sound Effects Volume:");
+        sfxLabel.setForeground(Color.WHITE);
+        JSlider sfxSlider = createStyledSlider();
+
+        audioPanel.add(bgMusicLabel);
+        audioPanel.add(bgMusicSlider);
+        audioPanel.add(sfxLabel);
+        audioPanel.add(sfxSlider);
+        return audioPanel;
     }
 
     private JPanel createControlsPanel() {
@@ -93,19 +193,6 @@ public class Settings extends JFrame {
         controlsPanel.add(scrollPane, BorderLayout.CENTER);
 
         return controlsPanel;
-    }
-
-    private JTable createInstructionTable() {
-        String[] columnNames = {"Action", "Description"};
-        Object[][] data = {
-                {"Arrow Keys", "Move the car (Up, Down, Left, Right)"},
-                {"Space Bar", "Resume/Pause the game"},
-                {"ESC", "Exit the game"},
-                {"A Key", "Shoot bullets"},
-                {"N Key", "Activate Nitrous Boost (5s duration, 10s cooldown)"}
-        };
-
-        return createTable(columnNames, data);
     }
 
     private JTable createControlTable() {
@@ -156,54 +243,6 @@ public class Settings extends JFrame {
         return table;
     }
 
-    private JPanel createAudioSettingsPanel() {
-        JPanel audioPanel = new JPanel(new GridLayout(2, 2, 20, 20));
-        audioPanel.setBackground(new Color(20, 20, 20));
-
-        JLabel bgMusicLabel = new JLabel("Background Music Volume:");
-        bgMusicLabel.setForeground(Color.WHITE);
-        JSlider bgMusicSlider = createStyledSlider();
-
-        JLabel sfxLabel = new JLabel("Sound Effects Volume:");
-        sfxLabel.setForeground(Color.WHITE);
-        JSlider sfxSlider = createStyledSlider();
-
-        audioPanel.add(bgMusicLabel);
-        audioPanel.add(bgMusicSlider);
-        audioPanel.add(sfxLabel);
-        audioPanel.add(sfxSlider);
-        return audioPanel;
-    }
-
-    private JPanel createGraphicsSettingsPanel() {
-        JPanel graphicsPanel = new JPanel(new GridLayout(3, 2, 20, 20));
-        graphicsPanel.setBackground(new Color(20, 20, 20));
-
-        JLabel resolutionLabel = new JLabel("Resolution:");
-        resolutionLabel.setForeground(Color.WHITE);
-        JComboBox<String> resolutionCombo = new JComboBox<>(new String[]{"800x600", "1024x768", "1280x720", "1920x1080"});
-        resolutionCombo.setBackground(new Color(30, 30, 30));
-        resolutionCombo.setForeground(Color.WHITE);
-
-        JLabel fullscreenLabel = new JLabel("Fullscreen:");
-        fullscreenLabel.setForeground(Color.WHITE);
-        JCheckBox fullscreenCheck = new JCheckBox();
-        fullscreenCheck.setOpaque(false);
-
-        JLabel vsyncLabel = new JLabel("V-Sync:");
-        vsyncLabel.setForeground(Color.WHITE);
-        JCheckBox vsyncCheck = new JCheckBox();
-        vsyncCheck.setOpaque(false);
-
-        graphicsPanel.add(resolutionLabel);
-        graphicsPanel.add(resolutionCombo);
-        graphicsPanel.add(fullscreenLabel);
-        graphicsPanel.add(fullscreenCheck);
-        graphicsPanel.add(vsyncLabel);
-        graphicsPanel.add(vsyncCheck);
-        return graphicsPanel;
-    }
-
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Arial", Font.BOLD, 18));
@@ -238,6 +277,10 @@ public class Settings extends JFrame {
         UIManager.put("TabbedPane.contentAreaColor", new Color(20, 20, 20));
         UIManager.put("TabbedPane.background", new Color(30, 30, 30));
         UIManager.put("TabbedPane.foreground", Color.WHITE);
+    }
+
+    public String getSelectedMap() {
+        return selectedMap;
     }
 
     public static void main(String[] args) {
