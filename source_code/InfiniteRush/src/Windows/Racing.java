@@ -56,10 +56,12 @@ public class Racing implements KeyListener {
     // We'll track how many seconds remain in the "current phase" (usage or cooldown)
     private int currentPhaseSeconds = 0;
     // ------------------------------------------------
+    private final String mapPath; // Add this field
 
-    Racing() {
+    public Racing(String mapPath) {
+        this.mapPath = mapPath; // Store the map path
         playerCar = new PlayerCar(GameConfig.LEFT_MARGIN, GameConfig.FRAME_HEIGHT - 150);
-        frame = new JFrame("Windows.Racing Game");
+        frame = new JFrame("Racing Game");
         obstacleManager = new ObstacleManager(frame);
 
         // Initialize background music
@@ -123,7 +125,7 @@ public class Racing implements KeyListener {
         // Finally, add to the frame (and ensure it's on top of backgrounds)
         frame.add(scoreLabel, 0);
     }
-    // --- NEW: Separate label for “Limit: 5 Cars” ---
+    // ---  ---
     private void initLimitLabel() {
         limitLabel = new JLabel("Limit: " + carLimit + " Cars");
 
@@ -212,7 +214,7 @@ public class Racing implements KeyListener {
         limitLabel.setText("Limit: " + carLimit + " Cars");
     }
     private JLabel loadBackground() {
-        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/Resources/race1.png")));
+        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource(mapPath)));
         Image scaledImage = icon.getImage().getScaledInstance(GameConfig.FRAME_WIDTH, GameConfig.FRAME_HEIGHT, Image.SCALE_SMOOTH);
         return new JLabel(new ImageIcon(scaledImage));
     }
@@ -428,7 +430,13 @@ public class Racing implements KeyListener {
         gameOver = true;
         backgroundMusic.stop(); // Stop the music when the game ends
         JOptionPane.showMessageDialog(frame, "Game Over!", "Game Over", JOptionPane.ERROR_MESSAGE);
-        System.exit(0);
+
+        // Dispose of the current game window
+        frame.dispose();
+
+        // Create and show the main menu
+        new Menu(); // Assuming the Menu class is where the main menu is defined
+
     }
 
     private void shootBullet() {
