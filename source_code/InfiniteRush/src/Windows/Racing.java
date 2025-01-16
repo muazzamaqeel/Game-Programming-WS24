@@ -428,9 +428,11 @@ public class Racing implements KeyListener {
 
     private void gameOver() {
         gameOver = true;
-        backgroundMusic.stop(); // Stop the music when the game ends
+        backgroundMusic.stop();
         JOptionPane.showMessageDialog(frame, "Game Over!", "Game Over", JOptionPane.ERROR_MESSAGE);
-        System.exit(0);
+        frame.dispose();
+        new Menu();
+
     }
 
     private void shootBullet() {
