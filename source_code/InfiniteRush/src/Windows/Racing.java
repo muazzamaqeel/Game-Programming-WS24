@@ -494,6 +494,20 @@ public class Racing implements KeyListener {
     }
 
     @Override
+    public void gameOver() {
+        gameOver = true;
+        backgroundMusic.stop(); // Stop the music when the game ends
+        JOptionPane.showMessageDialog(frame, "Game Over!", "Game Over", JOptionPane.ERROR_MESSAGE);
+
+        // Dispose of the current game window
+        frame.dispose();
+
+        // Create and show the main menu
+        new Menu(); // Assuming the Menu class is where the main menu is defined
+
+    }
+
+    @Override
     public void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT -> leftPressed = false;
